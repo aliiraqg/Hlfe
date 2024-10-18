@@ -81,33 +81,27 @@ app.listen(PORT, () => {
   console.log(`الخادم يعمل على المنفذ ${PORT}`);
 =======
 const express = require('express');
-const TelegramBot = require('node-telegram-bot-api');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
 
-// إعدادات البوت
-const token = '7891399266:AAEDdHQbEzH42ZAZqxzgrnSnGdU2Lr1L0BI';  // توكن البوت الخاص بك
-const bot = new TelegramBot(token, { polling: true });
-
-// إعدادات Express لتشغيل الخادم
+// إعداد الخادم
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// إعداد CORS للسماح بالطلبات من الواجهة الأمامية
 app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
+app.use(express.json()); // للتعامل مع البيانات بصيغة JSON
 
-// رابط MongoDB
+// الاتصال بقاعدة البيانات (استبدل الرابط بمعلوماتك)
 const MONGO_URI = 'mongodb+srv://alifakarr:Aliliwaa00@ali.wweyt.mongodb.net/?retryWrites=true&w=majority&appName=Ali';
 let db, usersCollection;
 
-// الاتصال بقاعدة البيانات
 async function connectDB() {
     try {
         const client = new MongoClient(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
         await client.connect();
-        db = client.db('telegram_mini_app');
-        usersCollection = db.collection('users');
+        db = client.db('telegram_mini_app');  // استبدل هذا باسم قاعدة بياناتك
+        usersCollection = db.collection('users');  // تعيين مجموعة "users"
         console.log('تم الاتصال بقاعدة البيانات بنجاح');
     } catch (error) {
         console.error('خطأ أثناء الاتصال بقاعدة البيانات:', error);
@@ -116,42 +110,31 @@ async function connectDB() {
 
 connectDB();
 
-// ترحيب المستخدم عند بدء المحادثة
-bot.onText(/\/start/, async (msg) => {
-    const chatId = msg.chat.id;
-    const userId = msg.from.id;
-
-    // تأكد من أن المستخدم موجود في قاعدة البيانات، وإلا قم بإنشائه
-    const user = await usersCollection.findOne({ userId: userId });
-    if (!user) {
-        await usersCollection.insertOne({ userId: userId, points: 0 });
+// تحديث النقاط للمستخدم
+app.post('/updatePoints', async (req, res) => {
+    const { userId, points } = req.body;
+    try {
+        await usersCollection.updateOne({ userId: userId }, { $set: { points: points } });
+        res.json({ message: 'تم تحديث النقاط بنجاح' });
+    } catch (error) {
+        console.error('خطأ في تحديث النقاط:', error);
+        res.status(500).json({ message: 'حدث خطأ أثناء تحديث النقاط' });
     }
-
-    // إرسال رابط التطبيق المستخدم في متصفح Telegram
-    bot.sendMessage(chatId, 'مرحبًا! اضغط على الرابط لفتح التطبيق:', {
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    {
-                        text: 'افتح التطبيق',
-                        web_app: { url: `https://tatle-xsll.vercel.app/?userId=${userId}` }  // الرابط الخاص بالواجهة الأمامية
-                    }
-                ]
-            ]
-        }
-    });
 });
 
-// استلام البيانات القادمة من الويب عبر WebAppData
-bot.on('web_app_data', async (msg) => {
-    const chatId = msg.chat.id;
-    const userId = msg.from.id;
-    const data = JSON.parse(msg.web_app_data.data);
-
-    // حفظ النقاط فقط إذا كانت البيانات قادمة من الواجهة الأمامية عبر التطبيق
-    if (data && data.points) {
-        await usersCollection.updateOne({ userId: userId }, { $set: { points: data.points } });
-        bot.sendMessage(chatId, `تم تحديث نقاطك: ${data.points} نقطة.`);
+// استرجاع النقاط للمستخدم
+app.get('/getUserPoints', async (req, res) => {
+    const { userId } = req.query;
+    try {
+        const user = await usersCollection.findOne({ userId: userId });
+        if (user) {
+            res.json({ points: user.points });
+        } else {
+            res.status(404).json({ message: 'المستخدم غير موجود' });
+        }
+    } catch (error) {
+        console.error('خطأ في استرجاع النقاط:', error);
+        res.status(500).json({ message: 'حدث خطأ أثناء استرجاع النقاط' });
     }
 });
 
