@@ -1,80 +1,86 @@
-// Import necessary packages
+// استيراد الحزم اللازمة
 const express = require('express');
 const mongoose = require('mongoose');
 const { Telegraf } = require('telegraf');
 const cors = require('cors');
 require('dotenv').config();
 
-// Create an Express app
+mongoose.set('strictQuery', true);  // لمنع تحذير strictQuery
+
+// إنشاء تطبيق Express
 const app = express();
-app.use(cors()); // Enable CORS to allow requests from the frontend
-app.use(express.json()); // To accept JSON in requests
+app.use(cors()); // تمكين CORS للسماح بالطلبات من الواجهة الأمامية
+app.use(express.json()); // للسماح باستقبال JSON
 
-// Connect to MongoDB
+// الاتصال بقاعدة بيانات MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.log('Error connecting to MongoDB:', err));
+  .then(() => console.log('تم الاتصال بقاعدة البيانات MongoDB'))
+  .catch(err => console.log('حدث خطأ في الاتصال بقاعدة البيانات:', err));
 
-// User schema for storing data
+// مسار افتراضي لمعالجة الطلبات إلى الصفحة الرئيسية "/"
+app.get('/', (req, res) => {
+  res.send('الخادم يعمل بنجاح!');  // رسالة عند زيارة الصفحة الرئيسية
+});
+
+// نقطة API لحفظ أو تحديث بيانات المستخدم
 const UserSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true }, // Telegram user ID
+  id: { type: String, required: true, unique: true }, // معرف المستخدم من Telegram
   first_name: String,
   last_name: String,
   username: String,
-  points: { type: Number, default: 0 }, // Points
-  level: { type: Number, default: 1 },  // Level
-  tasks: { type: Array, default: [] }   // Tasks
+  points: { type: Number, default: 0 }, // النقاط
+  level: { type: Number, default: 1 },  // المستوى
+  tasks: { type: Array, default: [] }   // المهام
 });
 
 const User = mongoose.model('User', UserSchema);
 
-// API endpoint to save or update user data
 app.post('/save-user-data', async (req, res) => {
   try {
     const { id, first_name, last_name, username, points, level, tasks } = req.body;
 
-    // Check if the user already exists
+    // تحقق مما إذا كان المستخدم موجودًا بالفعل
     let user = await User.findOne({ id });
     if (!user) {
-      // Create a new user if not found
+      // إنشاء مستخدم جديد إذا لم يكن موجودًا
       user = new User({ id, first_name, last_name, username, points, level, tasks });
       await user.save();
-      res.status(200).json({ message: 'User added and data saved successfully' });
+      res.status(200).json({ message: 'تم إضافة المستخدم وحفظ بياناته بنجاح' });
     } else {
-      // Update user data if already exists
+      // تحديث بيانات المستخدم إذا كان موجودًا
       user.points = points || user.points;
       user.level = level || user.level;
       user.tasks = tasks || user.tasks;
       await user.save();
-      res.status(200).json({ message: 'User data updated successfully' });
+      res.status(200).json({ message: 'تم تحديث بيانات المستخدم بنجاح' });
     }
   } catch (error) {
-    console.error('Error saving user data:', error);
-    res.status(500).json({ message: 'Error saving data' });
+    console.error('حدث خطأ أثناء حفظ بيانات المستخدم:', error);
+    res.status(500).json({ message: 'حدث خطأ أثناء حفظ البيانات' });
   }
 });
 
-// Set up Telegraf for the bot
+// إعداد Telegraf للبوت
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 bot.start((ctx) => {
-  ctx.reply('Hello! Click the button to open the web app:',
+  ctx.reply('مرحباً! اضغط على الزر لفتح تطبيق الويب:',
     {
       reply_markup: {
         inline_keyboard: [
-          [{ text: 'Open App', web_app: { url: 'https://tatle-xsll.vercel.app' } }]
+          [{ text: 'افتح التطبيق', web_app: { url: 'https://tatle-xsll.vercel.app' } }]
         ]
       }
     }
   );
 });
 
-// Launch the bot
+// بدء تشغيل البوت
 bot.launch();
-console.log('Bot is running...');
+console.log('البوت يعمل...');
 
-// Start the server on port 3000
+// تشغيل الخادم على المنفذ 3000
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`الخادم يعمل على المنفذ ${PORT}`);
 });
