@@ -11,7 +11,7 @@ app.use(cors()); // تمكين CORS للسماح بالطلبات من الوا�
 app.use(express.json()); // للسماح باستقبال JSON
 
 // الاتصال بقاعدة بيانات MongoDB
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect('mongodb+srv://alifakarr:Aliliwaa00@ali.wweyt.mongodb.net/?retryWrites=true&w=majority&appName=Ali', { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('تم الاتصال بقاعدة البيانات MongoDB'))
   .catch(err => console.log('حدث خطأ في الاتصال بقاعدة البيانات:', err));
 
@@ -55,7 +55,7 @@ app.post('/save-user-data', async (req, res) => {
 });
 
 // إعداد Telegraf للبوت
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const bot = new Telegraf('7891399266:AAEDdHQbEzH42ZAZqxzgrnSnGdU2Lr1L0BI');
 
 bot.start((ctx) => {
   ctx.reply('مرحباً! اضغط على الزر لفتح تطبيق الويب:',
