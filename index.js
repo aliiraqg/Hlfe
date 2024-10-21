@@ -141,5 +141,3 @@ app.get('/getUserPoints', async (req, res) => {
 // تشغيل الخادم
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على المنفذ ${PORT}`);
->>>>>>> 72f387e (إضافة كود البوابة الخلفية)
-});
