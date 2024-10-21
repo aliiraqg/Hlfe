@@ -1,5 +1,3 @@
-
-console.log("Remote Changes from GitHub");
 // استيراد الحزم اللازمة
 const express = require('express');
 const mongoose = require('mongoose');
@@ -79,65 +77,4 @@ console.log('البوت يعمل...');
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`الخادم يعمل على المنفذ ${PORT}`);
-=======
-const express = require('express');
-const cors = require('cors');
-const { MongoClient } = require('mongodb');
-
-// إعداد الخادم
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// إعداد CORS للسماح بالطلبات من الواجهة الأمامية
-app.use(cors());
-app.use(express.json()); // للتعامل مع البيانات بصيغة JSON
-
-// الاتصال بقاعدة البيانات (استبدل الرابط بمعلوماتك)
-const MONGO_URI = 'mongodb+srv://alifakarr:Aliliwaa00@ali.wweyt.mongodb.net/?retryWrites=true&w=majority&appName=Ali';
-let db, usersCollection;
-
-async function connectDB() {
-    try {
-        const client = new MongoClient(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-        await client.connect();
-        db = client.db('telegram_mini_app');  // استبدل هذا باسم قاعدة بياناتك
-        usersCollection = db.collection('users');  // تعيين مجموعة "users"
-        console.log('تم الاتصال بقاعدة البيانات بنجاح');
-    } catch (error) {
-        console.error('خطأ أثناء الاتصال بقاعدة البيانات:', error);
-    }
-}
-
-connectDB();
-
-// تحديث النقاط للمستخدم
-app.post('/updatePoints', async (req, res) => {
-    const { userId, points } = req.body;
-    try {
-        await usersCollection.updateOne({ userId: userId }, { $set: { points: points } });
-        res.json({ message: 'تم تحديث النقاط بنجاح' });
-    } catch (error) {
-        console.error('خطأ في تحديث النقاط:', error);
-        res.status(500).json({ message: 'حدث خطأ أثناء تحديث النقاط' });
-    }
 });
-
-// استرجاع النقاط للمستخدم
-app.get('/getUserPoints', async (req, res) => {
-    const { userId } = req.query;
-    try {
-        const user = await usersCollection.findOne({ userId: userId });
-        if (user) {
-            res.json({ points: user.points });
-        } else {
-            res.status(404).json({ message: 'المستخدم غير موجود' });
-        }
-    } catch (error) {
-        console.error('خطأ في استرجاع النقاط:', error);
-        res.status(500).json({ message: 'حدث خطأ أثناء استرجاع النقاط' });
-    }
-});
-
-// تشغيل الخادم
-app.listen(PORT, () => {
-    console.log(`الخادم يعمل على المنفذ ${PORT}`);
