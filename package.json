@@ -1,19 +1,16 @@
 {
   "name": "telegram-webapp-backend",
   "version": "1.0.0",
-  "description": "واجهة خلفية لتطبيق Telegram Web App",
+  "description": "Backend for Telegram Web App",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express": "^4.21.1",
-    "mongodb": "^6.9.0",
     "mongoose": "^6.4.4",
-    "node-telegram-bot-api": "^0.66.0",
     "telegraf": "^4.7.0"
   }
 }
