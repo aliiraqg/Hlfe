@@ -60,8 +60,15 @@ app.post('/save-user-data', async (req, res) => {
   }
 });
 
-// إعداد Telegraf للبوت
+// إعداد Telegraf للبوت باستخدام Webhook
 const bot = new Telegraf(process.env.BOT_TOKEN);
+
+// تعيين Webhook للبوت
+const webhookURL = `${process.env.VERCEL_URL}/telegram-webhook`;  // VERCEL_URL يأتي بشكل تلقائي من Vercel
+bot.telegram.setWebhook(webhookURL);
+
+// تعيين المسار الخاص بـ Webhook
+app.use(bot.webhookCallback('/telegram-webhook'));
 
 bot.start((ctx) => {
   ctx.reply('مرحباً! اضغط على الزر لفتح تطبيق الويب:',
@@ -75,11 +82,9 @@ bot.start((ctx) => {
   );
 });
 
-// بدء تشغيل البوت
-bot.launch();
-console.log('البوت يعمل...');
+console.log('البوت تم إعداده باستخدام Webhook...');
 
-// تشغيل الخادم على المنفذ 3000
+// تشغيل الخادم على المنفذ المخصص
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`الخادم يعمل على المنفذ ${PORT}`);
