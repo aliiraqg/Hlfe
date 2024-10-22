@@ -60,15 +60,8 @@ app.post('/save-user-data', async (req, res) => {
   }
 });
 
-// إعداد Telegraf للبوت باستخدام Webhook
+// إعداد Telegraf للبوت باستخدام Long Polling (لـ Termux)
 const bot = new Telegraf(process.env.BOT_TOKEN);
-
-// تعيين Webhook للبوت
-const webhookURL = `${process.env.VERCEL_URL}/telegram-webhook`;  // VERCEL_URL يأتي بشكل تلقائي من Vercel
-bot.telegram.setWebhook(webhookURL);
-
-// تعيين المسار الخاص بـ Webhook
-app.use(bot.webhookCallback('/telegram-webhook'));
 
 bot.start((ctx) => {
   ctx.reply('مرحباً! اضغط على الزر لفتح تطبيق الويب:',
@@ -82,9 +75,15 @@ bot.start((ctx) => {
   );
 });
 
-console.log('البوت تم إعداده باستخدام Webhook...');
+// إذا كانت بيئة التشغيل ليست Vercel (يعني أنك تستخدم Termux) نستخدم Long Polling
+if (!process.env.VERCEL) {
+  bot.launch();  // تشغيل البوت باستخدام Long Polling في بيئات مثل Termux
+  console.log('البوت يعمل باستخدام Long Polling...');
+} else {
+  console.log('يتم تشغيل الخادم بدون البوت في Vercel.');
+}
 
-// تشغيل الخادم على المنفذ المخصص
+// تشغيل الخادم على المنفذ 3000
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`الخادم يعمل على المنفذ ${PORT}`);
